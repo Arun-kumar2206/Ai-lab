@@ -1,112 +1,66 @@
-from collections import deque
-import copy
+class NQueenSolver:
+    def __init__(self, n=4):
+        self.n = n
+        self.board = [[0] * n for _ in range(n)]
+        self.queens = 0
 
-class PuzzleSolver:
-    def __init__(self, initial, goal):
-        self.initial = initial
-        self.goal = goal
-    
-    def get_blank_pos(self, state):
-        for i in range(3):
-            for j in range(3):
-                if state[i][j] == 0:
-                    return i, j
-    
-    def get_neighbors(self, state):
-        neighbors = []
-        i, j = self.get_blank_pos(state)
-        moves = [(-1, 0), (1, 0), (0, -1), (0, 1)]  # up, down, left, right
+    def is_safe(self, row, col):
+        # Check row and column
+        for i in range(self.n):
+            if self.board[row][i] == 1 or self.board[i][col] == 1:
+                return False
         
-        for di, dj in moves:
-            ni, nj = i + di, j + dj
-            if 0 <= ni < 3 and 0 <= nj < 3:
-                new_state = copy.deepcopy(state)
-                new_state[i][j], new_state[ni][nj] = new_state[ni][nj], new_state[i][j]
-                neighbors.append(new_state)
+        # Check diagonals
+        for i in range(self.n):
+            for j in range(self.n):
+                if self.board[i][j] == 1:
+                    if abs(i - row) == abs(j - col):
+                        return False
+        return True
+
+    def place_queen(self, row, col):
+        if self.board[row][col] == 1:
+            print("Queen already there!")
+            return
         
-        return neighbors
-    
-    def state_to_tuple(self, state):
-        return tuple(tuple(row) for row in state)
-    
-    def bfs_solve(self):
-        queue = deque([(self.initial, [self.initial])])
-        visited = {self.state_to_tuple(self.initial)}
-        
-        while queue:
-            current, path = queue.popleft()
-            
-            if current == self.goal:
-                return path
-            
-            for neighbor in self.get_neighbors(current):
-                state_tuple = self.state_to_tuple(neighbor)
-                if state_tuple not in visited:
-                    visited.add(state_tuple)
-                    queue.append((neighbor, path + [neighbor]))
-        
-        return None
-    
-    def print_state(self, state):
-        for row in state:
-            print(' '.join(map(str, row)))
+        if self.is_safe(row, col):
+            self.board[row][col] = 1
+            self.queens += 1
+            print("Queen placed!")
+        else:
+            print("Unsafe position!")
+
+    def display(self):
         print()
+        for row in self.board:
+            print(" ".join("Q" if x == 1 else "." for x in row))
+        print(f"\nQueens placed: {self.queens}/{self.n}")
 
-# Taking input
-print("Enter initial state (3x3 matrix, use 0 for blank):")
-initial = []
-for i in range(3):
-    row = list(map(int, input().split()))
-    initial.append(row)
+    def is_solved(self):
+        return self.queens == self.n
 
-print("\nEnter goal state (3x3 matrix, use 0 for blank):")
-goal = []
-for i in range(3):
-    row = list(map(int, input().split()))
-    goal.append(row)
+    def play(self):
+        print(f"{self.n}-Queen Problem - Place {self.n} queens safely!")
+        print("Enter row and column (0-based), or 'q' to quit\n")
+        
+        while True:
+            self.display()
+            
+            if self.is_solved():
+                print("\nPuzzle solved!")
+                break
+            
+            move = input("\nEnter row col: ").lower()
+            if move == 'q':
+                break
+            
+            try:
+                row, col = map(int, move.split())
+                if 0 <= row < self.n and 0 <= col < self.n:
+                    self.place_queen(row, col)
+                else:
+                    print("Invalid position!")
+            except:
+                print("Invalid input!")
 
-solver = PuzzleSolver(initial, goal)
-print("\nSolving...")
-solution = solver.bfs_solve()
-
-if solution:
-    print(f"Solution found in {len(solution) - 1} moves:\n")
-    for i, state in enumerate(solution):
-        print(f"Step {i}:")
-        solver.print_state(state)
-else:
-    print("No solution found!")
-# ```
-
-# **Sample Input:**
-# ```
-# Enter initial state (3x3 matrix, use 0 for blank):
-# 1 2 3
-# 4 0 5
-# 6 7 8
-
-# Enter goal state (3x3 matrix, use 0 for blank):
-# 1 2 3
-# 4 5 6
-# 7 8 0
-# ```
-
-# **Output:**
-# ```
-# Solving...
-# Solution found in 3 moves:
-
-# Step 0:
-# 1 2 3
-# 4 0 5
-# 6 7 8
-
-# Step 1:
-# 1 2 3
-# 4 5 0
-# 6 7 8
-
-# Step 2:
-# 1 2 3
-# 4 5 6
-# 7 8 0
+NQueenSolver().play()
